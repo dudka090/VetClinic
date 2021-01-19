@@ -31,21 +31,26 @@ public class VetClinicService {
     }
 
     public ResponseEntity<String> cancelAppointment(long ownerId, long pin, long appointmentId){
-        if(this.ownerRepository.existsById(ownerId)){
-            Owner owner = this.ownerRepository.findById(ownerId);
-            if(owner.getPin() == pin){
-                if(this.appointmentRepository.existsById(appointmentId)){
-                    this.appointmentRepository.deleteById(appointmentId);
-                    return new ResponseEntity<>("Visit deleted", HttpStatus.OK);
+        if(validateIdAndPin(ownerId,pin)){
+            if(this.ownerRepository.existsById(ownerId)){
+                Owner owner = this.ownerRepository.findById(ownerId);
+                if(owner.getPin() == pin){
+                    if(this.appointmentRepository.existsById(appointmentId)){
+                        this.appointmentRepository.deleteById(appointmentId);
+                        return new ResponseEntity<>("Visit deleted", HttpStatus.OK);
+                    }else{
+                        return new ResponseEntity<>("There is no visit with such id", HttpStatus.BAD_REQUEST);
+                    }
                 }else{
-                    return new ResponseEntity<>("There is no visit with such id", HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>("Wrong PIN", HttpStatus.FORBIDDEN);
                 }
             }else{
-                return new ResponseEntity<>("Wrong PIN", HttpStatus.FORBIDDEN);
+                return new ResponseEntity<>("Owner with such id doesn't exist", HttpStatus.BAD_REQUEST);
             }
-        }else{
-            return new ResponseEntity<>("Owner with such id doesn't exist", HttpStatus.BAD_REQUEST);
+        }else {
+            return new ResponseEntity<>("The ID and PIN must consist of 4 digits", HttpStatus.BAD_REQUEST);
         }
+
     }
 
     public ResponseEntity<String> listAppointmentsForDay(long doctorId, String date){
@@ -70,35 +75,43 @@ public class VetClinicService {
     }
 
     public ResponseEntity<String> makeAppointment(long ownerId, long pin, long doctorId, String date, String time){
-        if(this.ownerRepository.existsById(ownerId)){
-            Owner owner = this.ownerRepository.findById(ownerId);
-            if(owner.getPin() == pin){
-                if(this.doctorRepository.existsById(doctorId)){
-                    LocalDate localDate = LocalDate.parse(date, dateformatter);
-                    LocalTime localTime = LocalTime.parse(time, timeformatter);
-                    Optional<Appointment> appointmentOccupied = this.appointmentRepository.findByDoctorIdAndDateAndTime(doctorId, localDate, localTime);
-                    if(appointmentOccupied.isEmpty()){
-                        Doctor doctor = this.doctorRepository.findById(doctorId).get();
-                        Appointment appointment = this.appointmentRepository.save(new Appointment(owner, doctor, localDate, localTime));
-                        return new ResponseEntity<>("Visit was made\nDate: " +appointment.getDate() + "\nTime: " + appointment.getTime() + "\n Visit ID:  " +
-                                appointment.getId() + "\n Doctor: " + appointment.getDoctor().getName() + " " + appointment.getDoctor().getSurname(), HttpStatus.OK);
-                    }else{
-                        return new ResponseEntity<>("Already booked", HttpStatus.FORBIDDEN);
+        if(validateIdAndPin(ownerId,pin)){
+            if(this.ownerRepository.existsById(ownerId)){
+                Owner owner = this.ownerRepository.findById(ownerId);
+                if(owner.getPin() == pin){
+                    if(this.doctorRepository.existsById(doctorId)){
+                        LocalDate localDate = LocalDate.parse(date, dateformatter);
+                        LocalTime localTime = LocalTime.parse(time, timeformatter);
+                        Optional<Appointment> appointmentOccupied = this.appointmentRepository.findByDoctorIdAndDateAndTime(doctorId, localDate, localTime);
+                        if(appointmentOccupied.isEmpty()){
+                            Doctor doctor = this.doctorRepository.findById(doctorId).get();
+                            Appointment appointment = this.appointmentRepository.save(new Appointment(owner, doctor, localDate, localTime));
+                            return new ResponseEntity<>("Visit was made\nDate: " +appointment.getDate() + "\nTime: " + appointment.getTime() + "\n Visit ID:  " +
+                                    appointment.getId() + "\n Doctor: " + appointment.getDoctor().getName() + " " + appointment.getDoctor().getSurname(), HttpStatus.OK);
+                        }else{
+                            return new ResponseEntity<>("Already booked", HttpStatus.FORBIDDEN);
+                        }
+                    }
+                    else{
+                        return new ResponseEntity<>("Doctor with such id doesn't exist", HttpStatus.BAD_REQUEST);
                     }
                 }
                 else{
-                    return new ResponseEntity<>("Doctor with such id doesn't exist", HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>("Wrong PIN", HttpStatus.FORBIDDEN);
                 }
             }
-            else{
-                return new ResponseEntity<>("Wrong PIN", HttpStatus.FORBIDDEN);
-            }
+            else{return new ResponseEntity<>("Owner with such id doesn't exist", HttpStatus.BAD_REQUEST);}
+        }else {
+            return new ResponseEntity<>("The ID and PIN must consist of 4 digits", HttpStatus.BAD_REQUEST);
         }
-        else{return new ResponseEntity<>("Owner with such id doesn't exist", HttpStatus.BAD_REQUEST);}
-
-
     }
 
+    private boolean validateIdAndPin(long id, long pin){
+        if(String.valueOf(id).length()==4&&String.valueOf(pin).length()==4){
+            return true;
+        }
+        return false;
+    }
 
 
 }

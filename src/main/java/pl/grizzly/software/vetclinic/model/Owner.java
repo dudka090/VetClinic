@@ -1,5 +1,4 @@
 package pl.grizzly.software.vetclinic.model;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import javax.persistence.Entity;
