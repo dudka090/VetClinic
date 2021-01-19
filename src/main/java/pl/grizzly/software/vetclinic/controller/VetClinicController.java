@@ -1,37 +1,39 @@
 package pl.grizzly.software.vetclinic.controller;
-
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
+import pl.grizzly.software.vetclinic.service.VetClinicService;
 
 @RestController
 public class VetClinicController {
+    VetClinicService vetClinicService;
+    @Autowired
+    public VetClinicController(VetClinicService vetClinicService) {
+        this.vetClinicService = vetClinicService;
+    }
 
     @PostMapping("/newAppointment")
-    public String makeAppointment(@RequestParam int ownerId,
-                                          @RequestParam int pin,
-                                          @RequestParam int doctorId,
-                                          @RequestParam String dateTime
-                                          ){
-        return  "Owner: " + ownerId + ", PIN: " + pin + ", DoctorID: " + doctorId + ", Data: " + dateTime;
+    public ResponseEntity<String> makeAppointment(@RequestParam long ownerId,
+                                                  @RequestParam long pin,
+                                                  @RequestParam long doctorId,
+                                                  @RequestParam String date,
+                                                  @RequestParam String time){
+        return  this.vetClinicService.makeAppointment(ownerId,pin, doctorId, date, time);
     }
 
     @GetMapping("/listAppointmentsForDay")
-    public String makeAppointment(@RequestParam int doctorId,
+    public ResponseEntity<String> listAppointmentsForDay(@RequestParam long doctorId,
                                   @RequestParam String date
     ){
-        return  "DoctorID: " + doctorId + ", Data: " + date;
+        return  this.vetClinicService.listAppointmentsForDay(doctorId,date);
     }
 
     @DeleteMapping("/deleteAppointment")
-    public String makeAppointment(@RequestParam int ownerId,
-                                  @RequestParam int pin,
-                                  @RequestParam int appointmentId
+    public ResponseEntity<String> cancelAppointment(@RequestParam long ownerId,
+                                          @RequestParam long pin,
+                                          @RequestParam long appointmentId
     ){
-        return  "Owner: " + ownerId + ", PIN: " + pin + "Appointment: " + appointmentId;
+        return this.vetClinicService.cancelAppointment(ownerId,pin, appointmentId);
     }
 
 }
