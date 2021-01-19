@@ -36,15 +36,15 @@ public class VetClinicService {
             if(owner.getPin() == pin){
                 if(this.appointmentRepository.existsById(appointmentId)){
                     this.appointmentRepository.deleteById(appointmentId);
-                    return new ResponseEntity<>("Wizyta skasowana", HttpStatus.OK);
+                    return new ResponseEntity<>("Visit deleted", HttpStatus.OK);
                 }else{
-                    return new ResponseEntity<>("Nie istnieje wizyta o podanym id", HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>("There is no visit with such id", HttpStatus.BAD_REQUEST);
                 }
             }else{
-                return new ResponseEntity<>("Podano zły pin", HttpStatus.FORBIDDEN);
+                return new ResponseEntity<>("Wrong PIN", HttpStatus.FORBIDDEN);
             }
         }else{
-            return new ResponseEntity<>("Użytkownik o podanym id nie istnieje", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Owner with such id doesn't exist", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -53,19 +53,19 @@ public class VetClinicService {
             LocalDate localDate  = LocalDate.parse(date, dateformatter);
             if(this.appointmentRepository.existsByDoctorIdAndDate(doctorId, localDate)){
                 List<Appointment> appointments = this.appointmentRepository.findAllByDoctorIdAndDate(doctorId, localDate);
-                StringBuilder stringBuilder = new StringBuilder("Wizyty na dzień: " + localDate + ":\n");
+                StringBuilder stringBuilder = new StringBuilder("Visits for a day: " + localDate + ":\n");
                 for (Appointment a:appointments
                      ) {
                     stringBuilder.append(a.getDate()).append(" ").append(a.getTime()).append("     Client: ").append(a.getOwner().getName()).append(" ").append(a.getOwner().getSurname()).append("\n");
                 }
                 return new ResponseEntity<>(stringBuilder.toString(), HttpStatus.OK);
             }else{
-                return new ResponseEntity<>("Nie ma zaplanowanych wizyt na ten dzień", HttpStatus.OK);
+                return new ResponseEntity<>("No visits for such day", HttpStatus.OK);
             }
 
 
         }else{
-            return new ResponseEntity<>("Doktor o podanym id nie istnieje", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Doctor with such id doesn't exist", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -80,21 +80,21 @@ public class VetClinicService {
                     if(appointmentOccupied.isEmpty()){
                         Doctor doctor = this.doctorRepository.findById(doctorId).get();
                         Appointment appointment = this.appointmentRepository.save(new Appointment(owner, doctor, localDate, localTime));
-                        return new ResponseEntity<>("Wizyta została umówiona\nData: " +appointment.getDate() + "\nGodzina: " + appointment.getTime() + "\n Id wizyty:  " +
-                                appointment.getId() + "\n Doktor: " + appointment.getDoctor().getName() + " " + appointment.getDoctor().getSurname(), HttpStatus.OK);
+                        return new ResponseEntity<>("Visit was made\nDate: " +appointment.getDate() + "\nTime: " + appointment.getTime() + "\n Visit ID:  " +
+                                appointment.getId() + "\n Doctor: " + appointment.getDoctor().getName() + " " + appointment.getDoctor().getSurname(), HttpStatus.OK);
                     }else{
-                        return new ResponseEntity<>("Termin zajęty", HttpStatus.FORBIDDEN);
+                        return new ResponseEntity<>("Already booked", HttpStatus.FORBIDDEN);
                     }
                 }
                 else{
-                    return new ResponseEntity<>("Doktor o podanym id nie istnieje", HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>("Doctor with such id doesn't exist", HttpStatus.BAD_REQUEST);
                 }
             }
             else{
-                return new ResponseEntity<>("Podano zły pin", HttpStatus.FORBIDDEN);
+                return new ResponseEntity<>("Wrong PIN", HttpStatus.FORBIDDEN);
             }
         }
-        else{return new ResponseEntity<>("Użytkownik o podanym id nie istnieje", HttpStatus.BAD_REQUEST);}
+        else{return new ResponseEntity<>("Owner with such id doesn't exist", HttpStatus.BAD_REQUEST);}
 
 
     }
